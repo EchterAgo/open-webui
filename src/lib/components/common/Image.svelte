@@ -25,7 +25,16 @@
 	const i18n = getContext('i18n');
 
 	let _src = '';
-	$: _src = safeImageUrl(src.startsWith('/') ? `${WEBUI_BASE_URL}${src}` : src, allowExternal);
+	// Prefix root-relative srcs with the deployment base, but skip ones that
+	// already carry it (callers build file URLs from WEBUI_API_BASE_URL, which
+	// is itself base-prefixed) to avoid double-prefixing under a root path.
+	// At the root path WEBUI_BASE_URL is '' so this is a no-op.
+	$: _src = safeImageUrl(
+		src.startsWith('/') && !(WEBUI_BASE_URL && src.startsWith(WEBUI_BASE_URL))
+			? `${WEBUI_BASE_URL}${src}`
+			: src,
+		allowExternal
+	);
 
 	let showImagePreview = false;
 
