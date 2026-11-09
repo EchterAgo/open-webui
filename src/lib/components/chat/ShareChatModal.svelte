@@ -14,6 +14,7 @@
 		updateChatAccessGrants
 	} from '$lib/apis/chats';
 	import { copyToClipboard } from '$lib/utils';
+	import { WEBUI_BASE_URL } from '$lib/constants';
 
 	import Modal from '../common/Modal.svelte';
 	import Link from '../icons/Link.svelte';
@@ -32,7 +33,7 @@
 		const _chat = chat;
 
 		const sharedChat = await shareChatById(localStorage.token, chatId, shareMode);
-		shareUrl = `${window.location.origin}/s/${sharedChat.share_id}`;
+		shareUrl = `${window.location.origin}${WEBUI_BASE_URL}/s/${sharedChat.share_id}`;
 		console.log(shareUrl);
 		chat = await getChatById(localStorage.token, chatId);
 

@@ -29,7 +29,7 @@
 		workspaceActions,
 		workspaceCounts
 	} from '$lib/stores';
-	import { WEBUI_API_BASE_URL } from '$lib/constants';
+	import { WEBUI_API_BASE_URL, WEBUI_BASE_URL } from '$lib/constants';
 	import {
 		exportModels,
 		importModels,
@@ -337,7 +337,7 @@
 	};
 
 	const copyLinkHandler = async (model) => {
-		const baseUrl = window.location.origin;
+		const baseUrl = `${window.location.origin}${WEBUI_BASE_URL}`;
 		const res = await copyToClipboard(`${baseUrl}/?model=${encodeURIComponent(model.id)}`);
 
 		if (res) {

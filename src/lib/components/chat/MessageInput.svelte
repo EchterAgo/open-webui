@@ -70,7 +70,8 @@
 		getUserPosition,
 		getUserTimezone,
 		getWeekday,
-		isRasterImageContentType
+		isRasterImageContentType,
+		relativePathname
 	} from '$lib/utils';
 	import { uploadFile } from '$lib/apis/files';
 	import { filesystemFile, getCwd, uploadNewFileToTerminal } from '$lib/apis/terminal';
@@ -668,7 +669,7 @@
 			await temporaryChatEnabled.set(!isTemporary);
 		}
 
-		if (location.pathname !== '/' && !location.pathname.startsWith('/folders/')) {
+		if (relativePathname(location.pathname) !== '/' && !relativePathname(location.pathname).startsWith('/folders/')) {
 			await goto('/');
 		}
 

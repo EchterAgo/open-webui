@@ -5,6 +5,28 @@ import sha256 from 'js-sha256';
 import { parse as parseYaml } from 'yaml';
 import DOMPurify, { type UponSanitizeAttributeHookEvent } from 'dompurify';
 import { WEBUI_BASE_URL } from '$lib/constants';
+
+// Strip the deployment base path (WEBUI_ROOT_PATH) from a pathname so route
+// comparisons (`=== '/'`, `startsWith('/folders/')`, ...) behave the same under
+// a sub-path as at the root. `$page.url.pathname` / `location.pathname` include
+// the base; this normalizes them back to app-relative. No-op when WEBUI_BASE_URL
+// is empty (root deployment).
+export const relativePathname = (pathname: string): string => {
+	if (!WEBUI_BASE_URL) return pathname;
+	if (pathname === WEBUI_BASE_URL) return '/';
+	if (pathname.startsWith(`${WEBUI_BASE_URL}/`)) return pathname.slice(WEBUI_BASE_URL.length);
+	return pathname;
+};
+
+// Prefix a root-relative app path with the deployment base for navigation
+// (goto / window.location / copied links), but leave already-prefixed or
+// absolute URLs untouched. No-op at the root path (WEBUI_BASE_URL === '').
+export const withBase = (path: string): string => {
+	if (!WEBUI_BASE_URL || !path || !path.startsWith('/') || path.startsWith('//')) return path;
+	if (path === WEBUI_BASE_URL || path.startsWith(`${WEBUI_BASE_URL}/`)) return path;
+	return `${WEBUI_BASE_URL}${path}`;
+};
+
 import type { FileNavOpenRequest } from '$lib/stores';
 import { normalizeDocumentTargetPage } from '$lib/utils/documentPreview';
 
@@ -2541,5 +2563,8 @@ export function commentLink(
 		query.set('message', comment.target_id);
 	if (comment.target_type === 'note_page' && comment.target_id)
 		query.set('page', comment.target_id);
-	return `${path}?${query}`;
+	// Prefix the deployment base (WEBUI_ROOT_PATH) so the returned link works
+	// under a sub-path for all consumers (href, goto, new URL(..., origin)).
+	// At the root path WEBUI_BASE_URL is '' so this is a no-op.
+	return `${WEBUI_BASE_URL}${path}?${query}`;
 }

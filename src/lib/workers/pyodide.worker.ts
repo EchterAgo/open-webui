@@ -1,4 +1,5 @@
 import { loadPyodide, type PyodideInterface } from 'pyodide';
+import { base } from '$app/paths';
 
 declare global {
 	interface Window {
@@ -23,7 +24,10 @@ async function loadPyodideAndPackages(packages: string[] = []) {
 	self.result = null;
 
 	self.pyodide = await loadPyodide({
-		indexURL: '/pyodide/',
+		// Prefix the deployment base (WEBUI_ROOT_PATH) so a sub-path deploy
+		// fetches <base>/pyodide/ instead of the root-relative /pyodide/. `base`
+		// is the build-time sentinel, swapped for the real path by entrypoint.sh.
+		indexURL: `${base}/pyodide/`,
 		stdout: (text) => {
 			console.log('Python output:', text);
 

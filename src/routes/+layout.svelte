@@ -78,7 +78,8 @@
 		cleanText,
 		displayFileHandler,
 		getUserTimezone,
-		removeAllDetails
+		removeAllDetails,
+		withBase
 	} from '$lib/utils';
 	import { setTextScale } from '$lib/utils/text-scale';
 	import { initializeTether, renewTetherSession } from '$lib/utils/tether';
@@ -597,7 +598,7 @@
 			if ($user?.id !== userId) return;
 			try {
 				window.focus();
-				if ($user?.id === userId) await goto(path);
+				if ($user?.id === userId) await goto(withBase(path));
 			} catch (error) {
 				console.error('Could not open notification', error);
 			}
@@ -1088,7 +1089,7 @@
 			return;
 		}
 		if (event.type === 'page:navigate' && event.data?.path) {
-			await goto(event.data.path);
+			await goto(withBase(event.data.path));
 			return;
 		}
 		if (event.type === 'call') {

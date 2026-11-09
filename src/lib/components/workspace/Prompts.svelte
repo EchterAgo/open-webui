@@ -28,7 +28,7 @@
 		getPromptTags,
 		getPrompts
 	} from '$lib/apis/prompts';
-	import { capitalizeFirstLetter, slugify, copyToClipboard } from '$lib/utils';
+	import { capitalizeFirstLetter, slugify, copyToClipboard, withBase } from '$lib/utils';
 
 	import PromptMenu from './Prompts/PromptMenu.svelte';
 	import EllipsisHorizontal from '../icons/EllipsisHorizontal.svelte';
@@ -258,7 +258,7 @@
 		createPrompt = null;
 
 		if (createModalCloseHref) {
-			await goto(createModalCloseHref);
+			await goto(withBase(createModalCloseHref));
 		}
 	};
 

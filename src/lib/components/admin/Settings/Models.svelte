@@ -63,7 +63,7 @@
 	import PinSlash from '$lib/components/icons/PinSlash.svelte';
 	import GlobeAlt from '$lib/components/icons/GlobeAlt.svelte';
 	import LockClosed from '$lib/components/icons/LockClosed.svelte';
-	import { WEBUI_API_BASE_URL } from '$lib/constants';
+	import { WEBUI_API_BASE_URL, WEBUI_BASE_URL } from '$lib/constants';
 	import { goto } from '$app/navigation';
 
 	import Dropdown from '$lib/components/common/Dropdown.svelte';
@@ -651,7 +651,7 @@
 	};
 
 	const copyLinkHandler = async (model) => {
-		const baseUrl = window.location.origin;
+		const baseUrl = `${window.location.origin}${WEBUI_BASE_URL}`;
 		const res = await copyToClipboard(`${baseUrl}/?model=${encodeURIComponent(model.id)}`);
 
 		if (res) {

@@ -2,6 +2,7 @@ import { get } from 'svelte/store';
 import { setTheme } from './theme';
 import { goto } from '$app/navigation';
 import { WEBUI_API_BASE_URL } from '$lib/constants';
+import { withBase } from '$lib/utils';
 import { user, socket, desktopEvent, type DesktopEvent } from '$lib/stores';
 
 let nativeFetch: typeof fetch;
@@ -40,7 +41,7 @@ export function applyTetherToken(access: { token: string; expiresAt: number | nu
 				if (!connection.connected) connection.connect();
 				connection.emit('user-join', { auth: { token: access.token } });
 			}
-			if (location.pathname.endsWith('/auth')) await goto('/');
+					if (location.pathname.endsWith('/auth')) await goto(withBase('/'));
 		});
 	applying = operation;
 	return operation;
@@ -102,7 +103,7 @@ export async function initializeTether(fetcher: typeof fetch): Promise<() => voi
 				15_000
 			);
 			desktopEvent.set(event);
-			void goto('/').catch((error) => complete(error.message || 'Could not open chat.'));
+				void goto(withBase('/')).catch((error) => complete(error.message || 'Could not open chat.'));
 		});
 	});
 	return () => {

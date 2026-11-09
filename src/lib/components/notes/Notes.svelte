@@ -19,6 +19,7 @@
 	const i18n = getContext<typeof import('$lib/i18n').default>('i18n');
 
 	import { goto } from '$app/navigation';
+	import { WEBUI_BASE_URL } from '$lib/constants';
 	import {
 		WEBUI_NAME,
 		config,
@@ -723,7 +724,7 @@
 																downloadHandler(type);
 															}}
 															onCopyLink={async () => {
-																const baseUrl = window.location.origin;
+																const baseUrl = `${window.location.origin}${WEBUI_BASE_URL}`;
 																const res = await copyToClipboard(`${baseUrl}/notes/${note.id}`);
 
 																if (res) {
@@ -820,7 +821,7 @@
 																downloadHandler(type);
 															}}
 															onCopyLink={async () => {
-																const baseUrl = window.location.origin;
+																const baseUrl = `${window.location.origin}${WEBUI_BASE_URL}`;
 																const res = await copyToClipboard(`${baseUrl}/notes/${note.id}`);
 
 																if (res) {

@@ -40,7 +40,7 @@
 	import SplitPanel from '../icons/SplitPanel.svelte';
 	import Sparkles from '$lib/components/layout/Sidebar/icons/Sparkles.svelte';
 	import { isTemporaryChatId } from '$lib/utils/chatId';
-	import { createMessagesList } from '$lib/utils';
+	import { createMessagesList, relativePathname } from '$lib/utils';
 	import { generateTitle } from '$lib/apis';
 	import { updateChatById } from '$lib/apis/chats';
 	import { getOutputText } from './Messages/structuredOutput';
@@ -203,7 +203,7 @@
 							await temporaryChatEnabled.set(!$temporaryChatEnabled);
 						}
 
-						if ($page.url.pathname !== '/' && !$page.url.pathname.startsWith('/folders/')) {
+								if (relativePathname($page.url.pathname) !== '/' && !relativePathname($page.url.pathname).startsWith('/folders/')) {
 							await goto('/');
 						}
 

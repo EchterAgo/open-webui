@@ -10,7 +10,7 @@
 	dayjs.extend(calendar);
 
 	import { deleteChatById } from '$lib/apis/chats';
-	import { WEBUI_API_BASE_URL } from '$lib/constants';
+	import { WEBUI_API_BASE_URL, WEBUI_BASE_URL } from '$lib/constants';
 	import { copyToClipboard, formatNumber } from '$lib/utils';
 
 	import Modal from '$lib/components/common/Modal.svelte';
@@ -355,7 +355,7 @@
 															on:click={async (e) => {
 																e.stopImmediatePropagation();
 																e.stopPropagation();
-																const shareUrl = `${window.location.origin}/s/${chat.share_id}`;
+																const shareUrl = `${window.location.origin}${WEBUI_BASE_URL}/s/${chat.share_id}`;
 																if (await copyToClipboard(shareUrl))
 																	toast.success($i18n.t('Share link copied to clipboard.'));
 															}}

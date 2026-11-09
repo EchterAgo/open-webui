@@ -40,7 +40,7 @@
 	$: localizedDescription = resolveLocalizedModelDescription(item.model, $i18n.language);
 
 	const copyLinkHandler = async (model) => {
-		const baseUrl = window.location.origin;
+		const baseUrl = `${window.location.origin}${WEBUI_BASE_URL}`;
 		const res = await copyToClipboard(`${baseUrl}/?model=${encodeURIComponent(model.id)}`);
 
 		if (res) {

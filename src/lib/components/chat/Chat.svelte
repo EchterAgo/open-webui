@@ -76,7 +76,8 @@
 		getCodeBlockContents,
 		displayFileHandler,
 		getUsageTokenCount,
-		isRasterImageContentType
+		isRasterImageContentType,
+		relativePathname
 	} from '$lib/utils';
 	import { AudioQueue } from '$lib/utils/audio';
 	import { RealtimeCall, getBridgeTurnState, type BridgeSubmission } from '$lib/utils/realtime';
@@ -2010,7 +2011,7 @@
 			});
 		}
 
-		if ($page.url.pathname === '/' || $page.url.pathname.startsWith('/folders/')) {
+		if (relativePathname($page.url.pathname) === '/' || relativePathname($page.url.pathname).startsWith('/folders/')) {
 			tick().then(initNewChat);
 		}
 
@@ -2557,7 +2558,7 @@
 		// A navigation that mounts this page starts its new chat in onMount.
 		if (
 			from?.route.id === to?.route.id &&
-			(to?.url.pathname === '/' || to?.url.pathname.startsWith('/folders/'))
+			(relativePathname(to?.url.pathname) === '/' || relativePathname(to?.url.pathname).startsWith('/folders/'))
 		) {
 			await tick();
 			initNewChat();
@@ -2853,7 +2854,7 @@
 		await showArtifacts.set(false);
 
 		if (!embedded && $page.url.pathname.includes('/c/')) {
-			window.history.replaceState(window.history.state, '', `/`);
+			window.history.replaceState(window.history.state, '', `${WEBUI_BASE_URL}/`);
 		}
 
 		autoScroll = true;

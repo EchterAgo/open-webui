@@ -24,7 +24,7 @@
 	} from '$lib/apis/knowledge';
 
 	import { goto } from '$app/navigation';
-	import { capitalizeFirstLetter } from '$lib/utils';
+	import { capitalizeFirstLetter, withBase } from '$lib/utils';
 
 	import DeleteConfirmDialog from '../common/ConfirmDialog.svelte';
 	import ItemMenu from './Knowledge/ItemMenu.svelte';
@@ -212,7 +212,7 @@
 		showCreateModal = false;
 
 		if (createModalCloseHref) {
-			await goto(createModalCloseHref);
+			await goto(withBase(createModalCloseHref));
 		}
 	};
 

@@ -7,6 +7,7 @@
 	import { selectedComment, commentSelectionDraft } from './anchors';
 	import { toast } from 'svelte-sonner';
 	import { positionSelectionToolbar } from '$lib/utils/selectionToolbar';
+	import { relativePathname } from '$lib/utils';
 	const i18n = getContext<any>('i18n');
 	let selection: ReturnType<typeof selectedComment> = null;
 	let account: string | null = null;
@@ -21,7 +22,7 @@
 	$: commentsAllowed = !!(
 		$config?.features?.enable_comments &&
 		$user &&
-		!$page.url.pathname.startsWith('/s/')
+		!relativePathname($page.url.pathname).startsWith('/s/')
 	);
 	let preparing = false;
 	let selectionButton: HTMLButtonElement;

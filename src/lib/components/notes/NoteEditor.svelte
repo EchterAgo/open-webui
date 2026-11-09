@@ -1336,7 +1336,7 @@ ${content}
 										downloadHandler(type);
 									}}
 									onCopyLink={async () => {
-										const baseUrl = window.location.origin;
+										const baseUrl = `${window.location.origin}${WEBUI_BASE_URL}`;
 										const res = await copyToClipboard(`${baseUrl}/notes/${note.id}`);
 
 										if (res) {
@@ -1555,7 +1555,7 @@ ${content}
 								onAction={pageAction}
 								onCopyLink={async (pageId) => {
 									await copyToClipboard(
-										`${window.location.origin}/notes/${id}?page=${encodeURIComponent(pageId)}`
+										`${window.location.origin}${WEBUI_BASE_URL}/notes/${id}?page=${encodeURIComponent(pageId)}`
 									);
 									toast.success($i18n.t('Copied link to clipboard'));
 								}}

@@ -1,3 +1,5 @@
+import { base } from '$app/paths';
+
 type MessageListener = (event: MessageEvent) => void;
 type ErrorListener = (event: Event) => void;
 type QueuedMessage = { message: unknown; transfer: Transferable[] };
@@ -191,8 +193,10 @@ const sandboxScript = String.raw`
 })();
 `;
 
-// indexURL must be absolute because about:srcdoc can't be a base URL
-const pyodideIndexURL = `${globalThis.location?.origin ?? ''}/pyodide/`;
+// indexURL must be absolute because about:srcdoc can't be a base URL.
+// Include the deployment base path (WEBUI_ROOT_PATH) so the sandbox loads
+// /openwebui/pyodide/pyodide.js instead of the root-relative /pyodide/.
+const pyodideIndexURL = `${(globalThis.location?.origin ?? '') + base}/pyodide/`;
 
 const sandboxHtml = `<!doctype html><html><head><meta charset="utf-8"><script>window.__PYODIDE_INDEX_URL__=${JSON.stringify(pyodideIndexURL)}</script></head><body><script src="${pyodideIndexURL}pyodide.js"></script><script>${sandboxScript}</script></body></html>`;
 

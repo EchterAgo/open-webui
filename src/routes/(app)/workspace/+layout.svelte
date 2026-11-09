@@ -21,7 +21,7 @@
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
 	import Sidebar from '$lib/components/icons/Sidebar.svelte';
 	import SplitCreateButton from '$lib/components/common/SplitCreateButton.svelte';
-	import { formatNumber } from '$lib/utils';
+	import { formatNumber, relativePathname } from '$lib/utils';
 
 	const i18n = getContext<Writable<i18nType>>('i18n');
 
@@ -35,7 +35,7 @@
 		workspaceActions.set([]);
 	}
 
-	$: if (loaded && $page.url.pathname.startsWith('/workspace')) {
+	$: if (loaded && relativePathname($page.url.pathname).startsWith('/workspace')) {
 		loadWorkspaceCounts();
 	}
 

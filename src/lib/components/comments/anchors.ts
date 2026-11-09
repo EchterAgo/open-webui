@@ -1,4 +1,5 @@
 import { isSavedChatId } from '$lib/utils/chatId';
+import { relativePathname } from '$lib/utils';
 import { sha256 } from 'js-sha256';
 import { writable } from 'svelte/store';
 import type { CommentAnchor, CommentResource, CommentTarget } from '$lib/apis/comments';
@@ -98,7 +99,7 @@ export function anchorPosition(text: string, anchor: CommentAnchor): [number, nu
 	return candidates.length === 1 ? [candidates[0], candidates[0] + quote.length] : null;
 }
 export function selectedComment() {
-	if (window.location.pathname.startsWith('/s/')) return null;
+	if (relativePathname(window.location.pathname).startsWith('/s/')) return null;
 	const selection = window.getSelection();
 	if (!selection?.rangeCount || selection.isCollapsed) return null;
 	const range = selection.getRangeAt(0).cloneRange();

@@ -159,10 +159,12 @@ export function rootPathPreprocess() {
       );
 
       // 1b. Transform goto(`/...`) — template literal args starting with /
-      // Matches goto(`/path...`) and goto(`/path${var}...`)
+      // Matches goto(`/path...`), goto(`/path${var}...`) and goto(`/?query...`)
+      // (a leading `?`/`#` is a navigation URL, so it must be base-prefixed too;
+      // API query fragments like commentsRequest(`/?...`) are not goto() calls).
       // Inserts ${base} after the opening backtick so the path becomes ${base}/path...
       modified = modified.replace(
-        /\bgoto\(\s*\x60(\/[a-z])/g,
+        /\bgoto\(\s*\x60(\/[a-z?#])/g,
         (match, pathStart) => {
           needsBase = true;
           return `goto(\`\${base}${pathStart}`;
@@ -257,7 +259,7 @@ export function rootPathPreprocess() {
 
       // 8b. Transform href: `/path...` in object literals (template literals)
       modified = modified.replace(
-        /\bhref:\s*\x60(\/[a-z])/g,
+        /\bhref:\s*\x60(\/[a-z?#])/g,
         (match, pathStart) => {
           needsBase = true;
           return `href: \`\${base}${pathStart}`;
@@ -332,7 +334,7 @@ export function rootPathPreprocess() {
 
       // Transform href={`/path...`} in Svelte expressions
       modified = modified.replace(
-        /\bhref=\{\x60(\/[a-z])/g,
+        /\bhref=\{\x60(\/[a-z?#])/g,
         (match, pathStart) => {
           needsBase = true;
           return `href={\`\${base}${pathStart}`;

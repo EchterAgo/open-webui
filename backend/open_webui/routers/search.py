@@ -18,6 +18,7 @@ from open_webui.models.shared_chats import SharedChat
 from open_webui.models.users import User
 from open_webui.utils.access_control import has_permission
 from open_webui.utils.auth import get_verified_user
+from open_webui.env import WEBUI_ROOT_PATH
 from pydantic import BaseModel, Field
 from sqlalchemy import BigInteger, and_, case, cast, func, literal, or_, select, text, union_all
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -264,7 +265,9 @@ async def search_workspace(  # noqa: C901 — keep permission scoping and source
                 context=context,
                 snippet=excerpt(content, query),
                 preview=excerpt(content, query, 2400),
-                url=url,
+                # Prefix the deployment root path so the link resolves under a
+                # sub-path (WEBUI_ROOT_PATH). Empty at the root path -> no-op.
+                url=f'{WEBUI_ROOT_PATH}{url}',
                 updated_at=updated,
                 shared=shared,
                 pinned=bool(pinned),

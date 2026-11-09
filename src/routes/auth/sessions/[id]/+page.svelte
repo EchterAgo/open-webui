@@ -6,6 +6,7 @@
 	import { goto } from '$app/navigation';
 	import { user, config, WEBUI_NAME } from '$lib/stores';
 	import { WEBUI_API_BASE_URL, WEBUI_BASE_URL } from '$lib/constants';
+	import { withBase } from '$lib/utils';
 	import Spinner from '$lib/components/common/Spinner.svelte';
 
 	const i18n = getContext<Readable<I18n>>('i18n');
@@ -25,7 +26,7 @@
 				if (provider && Object.hasOwn(get(config)?.oauth?.providers ?? {}, provider)) {
 					location.href = `${WEBUI_BASE_URL}/oauth/${encodeURIComponent(provider)}/login`;
 				} else {
-					await goto('/auth?redirect=' + encodeURIComponent(continuation));
+						await goto(withBase('/auth?redirect=' + encodeURIComponent(continuation)));
 				}
 				return;
 			}

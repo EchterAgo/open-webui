@@ -26,7 +26,7 @@
 	import { WEBUI_API_BASE_URL, WEBUI_BASE_URL } from '$lib/constants';
 	import { WEBUI_NAME, config, user, socket } from '$lib/stores';
 
-	import { generateInitialsImage, canvasPixelTest, getUserTimezone } from '$lib/utils';
+	import { generateInitialsImage, canvasPixelTest, getUserTimezone, withBase } from '$lib/utils';
 
 	import Spinner from '$lib/components/common/Spinner.svelte';
 	import OnBoarding from '$lib/components/OnBoarding.svelte';
@@ -91,7 +91,7 @@
 					sessionStorage.getItem('auth:continue') || $page.url.searchParams.get('redirect') || '/';
 			}
 
-			await goto(redirectPath);
+				await goto(withBase(redirectPath));
 			localStorage.removeItem('redirectPath');
 		}
 	};
@@ -187,7 +187,7 @@
 		const logout = $page.url.searchParams.get('state') === 'logout';
 
 		if ($user && !logout) {
-			goto(redirectPath || '/');
+			goto(withBase(redirectPath || '/'));
 		} else {
 			if (redirectPath) {
 				localStorage.setItem('redirectPath', redirectPath);
