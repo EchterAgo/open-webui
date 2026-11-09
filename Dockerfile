@@ -20,6 +20,11 @@ ARG USE_TIKTOKEN_ENCODING_NAME="cl100k_base"
 
 ARG BUILD_HASH=dev-build
 ARG BUILD_CHANNEL=unknown
+# URL root path baked into the frontend build. Defaults to a sentinel that the
+# container entrypoint replaces at startup with the real WEBUI_ROOT_PATH, so the
+# deployment sub-path (e.g. /openwebui) is chosen at runtime without a rebuild.
+# See entrypoint.sh and open_webui/utils/path_prefix_middleware.py.
+ARG WEBUI_ROOT_PATH="/__WEBUI_ROOT_PATH__"
 # Override at your own risk - non-root configurations are untested
 ARG UID=0
 ARG GID=0
@@ -29,6 +34,7 @@ FROM --platform=$BUILDPLATFORM node:22-alpine3.20 AS build
 ARG BUILD_HASH
 ARG BUILD_CHANNEL
 ARG USE_SLIM
+ARG WEBUI_ROOT_PATH
 ARG UID
 ARG GID
 
@@ -47,8 +53,32 @@ RUN ONNXRUNTIME_NODE_INSTALL_CUDA=skip npm ci --force
 COPY . .
 ENV APP_BUILD_HASH=${BUILD_HASH}
 ENV APP_BUILD_CHANNEL=${BUILD_CHANNEL}
+# svelte.config.js / vite.config.ts read WEBUI_ROOT_PATH to set kit.paths.base.
+ENV WEBUI_ROOT_PATH=${WEBUI_ROOT_PATH}
 RUN npm run build && \
     if [ "$USE_SLIM" = "true" ]; then find build -type f -name '*.map' -delete; fi
+
+# Post-build: rewrite root-absolute asset paths SvelteKit does not prefix via
+# paths.base (the /_app/ chunk graph, /static/ assets and the PWA manifest).
+# /api/ and /ws/ are prefixed at runtime through $app/paths, so they are left
+# alone here to avoid double-prefixing. The sentinel value is what the
+# entrypoint later swaps for the real WEBUI_ROOT_PATH.
+RUN if [ -n "${WEBUI_ROOT_PATH}" ]; then \
+      echo "Rewriting root-absolute paths with prefix: ${WEBUI_ROOT_PATH}"; \
+      for f in $(find build -type f \( -name '*.html' -o -name '*.js' \)); do \
+        sed -i \
+          -e "s|\"/_app/|\"${WEBUI_ROOT_PATH}/_app/|g" \
+          -e "s|'/_app/|'${WEBUI_ROOT_PATH}/_app/|g" \
+          -e 's|`/_app/|`'"${WEBUI_ROOT_PATH}"'/_app/|g' \
+          -e "s|\"/static/|\"${WEBUI_ROOT_PATH}/static/|g" \
+          -e "s|'/static/|'${WEBUI_ROOT_PATH}/static/|g" \
+          -e 's|`/static/|`'"${WEBUI_ROOT_PATH}"'/static/|g' \
+          -e "s|\"/manifest.json\"|\"${WEBUI_ROOT_PATH}/manifest.json\"|g" \
+          -e "s|'/manifest.json'|'${WEBUI_ROOT_PATH}/manifest.json'|g" \
+          "$f"; \
+      done && \
+      echo "Done rewriting root-absolute paths"; \
+    fi
 
 # Prepare backend ownership before the final copy so static assets occupy one layer.
 # Group 0 write access lets arbitrary OpenShift UIDs update these assets at startup.
@@ -233,4 +263,11 @@ ARG BUILD_HASH
 ENV WEBUI_BUILD_HASH=${BUILD_HASH}
 ENV DOCKER=true
 
+# Runtime root-path substitution: swaps the build-time sentinel in /app/build
+# for the real WEBUI_ROOT_PATH env value before launching the server. Defaults
+# to empty (served at the root path) so the image is unchanged unless
+# WEBUI_ROOT_PATH is set at run time.
+COPY --chmod=755 entrypoint.sh /app/entrypoint.sh
+ENV WEBUI_ROOT_PATH=""
+ENTRYPOINT [ "/app/entrypoint.sh" ]
 CMD [ "bash", "start.sh"]

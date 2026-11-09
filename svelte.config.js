@@ -1,13 +1,16 @@
 import adapter from '@sveltejs/adapter-static';
 import { resolveBuildInfo } from './scripts/build-info.js';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import { rootPathPreprocess } from './src/lib/root-path-preprocess.js';
 import fs from 'node:fs';
+
+const WEBUI_BASE_PATH = process.env.WEBUI_ROOT_PATH || '';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	// Consult https://kit.svelte.dev/docs/integrations#preprocessors
 	// for more information about preprocessors
-	preprocess: vitePreprocess(),
+	preprocess: [rootPathPreprocess(), vitePreprocess()],
 	kit: {
 		// adapter-auto only supports some environments, see https://kit.svelte.dev/docs/adapter-auto for a list.
 		// If your environment is not supported or you settled on a specific environment, switch out the adapter.
@@ -17,6 +20,9 @@ const config = {
 			assets: 'build',
 			fallback: 'index.html'
 		}),
+		paths: {
+			base: WEBUI_BASE_PATH
+		},
 		// poll for new version name every 60 seconds (to trigger reload mechanic in +layout.svelte)
 		version: {
 			name: (() => {

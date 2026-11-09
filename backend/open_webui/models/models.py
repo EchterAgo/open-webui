@@ -448,7 +448,7 @@ class ModelsTable:
                 or (
                     include_background
                     and (
-                        meta.get('background_image_url') == f'/api/v1/files/{file_id}/content'
+                        meta.get('background_image_url') == f'{WEBUI_ROOT_PATH}/api/v1/files/{file_id}/content'
                         or (meta.get('voice_avatar') or {}).get('file_id') == file_id
                         or any(
                             asset.get('file_id') == file_id

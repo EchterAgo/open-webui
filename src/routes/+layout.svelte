@@ -1,4 +1,5 @@
 <script>
+	import { base } from '$app/paths';
 	import { setTheme } from '$lib/utils/theme';
 	import {
 		playNotificationSound,
@@ -189,7 +190,7 @@
 			reconnectionDelay: 1000,
 			reconnectionDelayMax: 5000,
 			randomizationFactor: 0.5,
-			path: '/ws/socket.io',
+			path: `${base}/ws/socket.io`,
 			transports: enableWebsocket ? ['websocket'] : ['polling', 'websocket'],
 			auth: (cb) => cb({ token: localStorage.token })
 		});

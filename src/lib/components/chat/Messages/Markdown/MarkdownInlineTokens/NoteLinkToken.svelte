@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, getContext } from 'svelte';
 	import { goto } from '$app/navigation';
+import { base } from '$app/paths';
 	import { getNoteById } from '$lib/apis/notes';
 	import { getUserInfoById } from '$lib/apis/users';
 	import { capitalizeFirstLetter } from '$lib/utils';
@@ -50,7 +51,7 @@
 	on:click|preventDefault|stopPropagation={() => {
 		try {
 			const url = new URL(href, window.location.origin);
-			goto(url.pathname + url.search + url.hash);
+			goto(`${base}${url.pathname}${url.search}${url.hash}`);
 		} catch {
 			// fallback
 		}

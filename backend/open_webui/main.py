@@ -1,4 +1,5 @@
 from __future__ import annotations
+from open_webui.utils.path_prefix_middleware import PathPrefixStripMiddleware
 
 import asyncio
 import copy
@@ -105,6 +106,7 @@ from open_webui.env import (
     INSTANCE_ID,
     LICENSE_KEY,
     LOG_FORMAT,
+    WEBUI_ROOT_PATH,
     MAX_BODY_LOG_SIZE,
     # Redis
     REDIS_KEY_PREFIX,
@@ -813,6 +815,11 @@ app.add_middleware(
 
 
 app.mount('/ws', socket_app)
+
+# PathPrefixStripMiddleware must be added last so it runs first (outermost),
+# stripping WEBUI_ROOT_PATH from incoming request paths before any other
+# middleware or FastAPI routing processes them.
+app.add_middleware(PathPrefixStripMiddleware)
 
 
 app.include_router(ollama.router, prefix='/ollama', tags=['ollama'])
@@ -2461,6 +2468,7 @@ async def get_app_config(request: Request):
         'status': True,
         'name': app.state.WEBUI_NAME,
         'version': VERSION,
+        'root_path': WEBUI_ROOT_PATH,
         'default_locale': str(DEFAULT_LOCALE),
         'i18n': config.get('ui.i18n') or {},
         'oauth': {
@@ -3079,7 +3087,7 @@ async def get_manifest_json():
             'name': app.state.WEBUI_NAME,
             'short_name': app.state.WEBUI_NAME,
             'description': f'{app.state.WEBUI_NAME} is an open, extensible, user-friendly interface for AI that adapts to your workflow.',
-            'start_url': '/',
+            'start_url': f'{WEBUI_ROOT_PATH}/',
             'display': 'standalone',
             'background_color': '#343541',
             'icons': [
@@ -3087,20 +3095,20 @@ async def get_manifest_json():
                 # Do not alter, remove, obscure, or replace it except as LICENSE permits:
                 # https://docs.openwebui.com/license.
                 {
-                    'src': '/static/logo.png',
+                    'src': f'{WEBUI_ROOT_PATH}/static/logo.png',
                     'type': 'image/png',
                     'sizes': '500x500',
                     'purpose': 'any',
                 },
                 {
-                    'src': '/static/logo.png',
+                    'src': f'{WEBUI_ROOT_PATH}/static/logo.png',
                     'type': 'image/png',
                     'sizes': '500x500',
                     'purpose': 'maskable',
                 },
             ],
             'share_target': {
-                'action': '/',
+                'action': f'{WEBUI_ROOT_PATH}/',
                 'method': 'GET',
                 'params': {'text': 'shared'},
             },
@@ -3247,9 +3255,9 @@ def swagger_ui_html(*args, **kwargs):
     return get_swagger_ui_html(
         *args,
         **kwargs,
-        swagger_js_url='/static/swagger-ui/swagger-ui-bundle.js',
-        swagger_css_url='/static/swagger-ui/swagger-ui.css',
-        swagger_favicon_url='/static/swagger-ui/favicon.png',
+        swagger_js_url=f'{WEBUI_ROOT_PATH}/static/swagger-ui/swagger-ui-bundle.js',
+        swagger_css_url=f'{WEBUI_ROOT_PATH}/static/swagger-ui/swagger-ui.css',
+        swagger_favicon_url=f'{WEBUI_ROOT_PATH}/static/swagger-ui/favicon.png',
     )
 
 

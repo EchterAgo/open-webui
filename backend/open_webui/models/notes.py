@@ -14,6 +14,7 @@ from open_webui.internal.db import Base, get_async_db_context
 from open_webui.models.access_grants import AccessGrantModel, AccessGrants
 from open_webui.models.groups import Groups
 from open_webui.models.users import User, UserModel, UserResponse
+from open_webui.env import WEBUI_ROOT_PATH
 from open_webui.utils.json_codec import JSONCodec
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import JSON, BigInteger, Column, ForeignKey, Text, cast, delete, func, or_, select, update
@@ -136,7 +137,7 @@ def migrate_page_files(page: dict, files: list[dict]) -> None:
                     changed = True
         elif file['id'] not in existing:
             attrs = {'id': file['id'], 'name': file.get('name') or file['id'], 'size': file.get('size') or 0}
-            href = f'/api/v1/files/{file["id"]}/content'
+            href = f'{WEBUI_ROOT_PATH}/api/v1/files/{file["id"]}/content'
             block = f'<div data-file-id="{escape(file["id"], quote=True)}"><a href="{escape(href, quote=True)}">{escape(attrs["name"])}</a></div>'
             content['html'] = (content.get('html') or markdown.markdown(content.get('md') or '')) + block
             content['md'] = (

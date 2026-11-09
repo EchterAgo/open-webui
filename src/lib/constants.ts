@@ -1,3 +1,16 @@
+import { browser, dev } from '$app/environment';
+
+function getBasePath(): string {
+	if (!browser) return '';
+	for (const key of Object.keys(globalThis as any)) {
+		if (key.startsWith('__sveltekit')) {
+			const cfg = (globalThis as any)[key];
+			if (cfg?.base) return cfg.base;
+		}
+	}
+	return '';
+}
+
 // import { version } from '../../package.json';
 
 // LICENSE covers this Open WebUI branding surface, including name, logo,
@@ -7,7 +20,7 @@
 export const APP_NAME = 'Open WebUI';
 
 export const WEBUI_HOSTNAME = '';
-export const WEBUI_BASE_URL = '';
+export const WEBUI_BASE_URL = browser ? (dev ? `http://${WEBUI_HOSTNAME}` : getBasePath()) : getBasePath();
 export const WEBUI_API_BASE_URL = `${WEBUI_BASE_URL}/api/v1`;
 
 export const OLLAMA_API_BASE_URL = `${WEBUI_BASE_URL}/ollama`;

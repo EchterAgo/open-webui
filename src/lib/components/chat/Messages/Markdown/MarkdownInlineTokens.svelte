@@ -5,6 +5,7 @@
 	import type { Token, Tokens } from 'marked';
 	import { getContext } from 'svelte';
 	import { goto } from '$app/navigation';
+import { base } from '$app/paths';
 
 	const i18n = getContext('i18n');
 	const terminalDocument = getContext<
@@ -86,7 +87,7 @@
 					url.pathname.startsWith('/channels/'))
 			) {
 				e.preventDefault();
-				goto(url.pathname + url.search + url.hash);
+				goto(`${base}${url.pathname}${url.search}${url.hash}`);
 			}
 		} catch {
 			// Invalid URL, let browser handle it

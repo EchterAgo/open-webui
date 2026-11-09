@@ -4,6 +4,8 @@ import { resolveBuildInfo } from './scripts/build-info.js';
 
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
+const WEBUI_BASE_PATH = process.env.WEBUI_ROOT_PATH || '';
+
 const backendTarget = process.env.WEBUI_BACKEND_URL || 'http://localhost:8080';
 const buildInfo = resolveBuildInfo();
 

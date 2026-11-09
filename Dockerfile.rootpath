@@ -1,0 +1,89 @@
+# syntax=docker/dockerfile:1
+#
+# Open WebUI with reverse-proxy sub-path support (WEBUI_ROOT_PATH).
+#
+# Upstream Open WebUI hard-codes the frontend to the root path, so it cannot be
+# mounted under a sub-directory (e.g. https://host/openwebui) behind a shared
+# reverse proxy. This image adds that capability with a small, self-contained
+# patch (adapted from the community open-webui-rootpath project):
+#
+#   - src/lib/root-path-preprocess.js : Svelte preprocessor that rewrites the
+#     root-absolute paths SvelteKit's `paths.base` does not cover (goto(),
+#     href="/...", location.href, Socket.IO path, ...).
+#   - backend/open_webui/utils/path_prefix_middleware.py : ASGI middleware that
+#     strips WEBUI_ROOT_PATH from incoming request paths and re-adds it to
+#     root-relative redirect Locations.
+#   - WEBUI_ROOT_PATH in env.py + the frontend/backend config edits (see the
+#     feature/root-path branch commits).
+#
+# The frontend is built ONCE with a sentinel prefix (/__WEBUI_ROOT_PATH__) and
+# entrypoint.sh swaps it for the real WEBUI_ROOT_PATH at container start, so the
+# deployment path is chosen at runtime via env with no rebuild.
+#
+# We build on the released image rather than the full upstream Dockerfile: the
+# base already ships the (large) Python/torch backend runtime for this exact
+# version, so we only rebuild the frontend and overlay the patched backend
+# sources. Bump BASE_IMAGE together with the submodule tag.
+ARG BASE_IMAGE=ghcr.io/open-webui/open-webui:v0.13.3
+
+######## WebUI frontend (patched, built with the sentinel root path) ########
+FROM --platform=$BUILDPLATFORM node:22-alpine3.20 AS build
+ARG BUILD_HASH=dev-build
+# Sentinel, not the real path: entrypoint.sh replaces it at startup.
+ARG WEBUI_ROOT_PATH=/__WEBUI_ROOT_PATH__
+
+WORKDIR /app
+RUN apk add --no-cache git
+
+COPY package.json package-lock.json ./
+# The frontend build never uses onnxruntime-node's CUDA binaries.
+RUN ONNXRUNTIME_NODE_INSTALL_CUDA=skip npm ci --force
+
+COPY . .
+ENV APP_BUILD_HASH=${BUILD_HASH}
+# svelte.config.js / vite.config.ts read WEBUI_ROOT_PATH -> kit.paths.base.
+ENV WEBUI_ROOT_PATH=${WEBUI_ROOT_PATH}
+ENV NODE_OPTIONS=--max-old-space-size=6144
+RUN npm run build
+
+# Post-build: rewrite the root-absolute asset paths SvelteKit does not prefix
+# via paths.base (the /_app/ chunk graph, /static/ assets, the PWA manifest).
+# /api/ and /ws/ are prefixed at runtime through $app/paths, so they are left
+# untouched here to avoid double-prefixing.
+RUN if [ -n "${WEBUI_ROOT_PATH}" ]; then \
+      echo "Rewriting root-absolute paths with sentinel: ${WEBUI_ROOT_PATH}"; \
+      for f in $(find build -type f \( -name '*.html' -o -name '*.js' \)); do \
+        sed -i \
+          -e "s|\"/_app/|\"${WEBUI_ROOT_PATH}/_app/|g" \
+          -e "s|'/_app/|'${WEBUI_ROOT_PATH}/_app/|g" \
+          -e 's|`/_app/|`'"${WEBUI_ROOT_PATH}"'/_app/|g' \
+          -e "s|\"/static/|\"${WEBUI_ROOT_PATH}/static/|g" \
+          -e "s|'/static/|'${WEBUI_ROOT_PATH}/static/|g" \
+          -e 's|`/static/|`'"${WEBUI_ROOT_PATH}"'/static/|g' \
+          -e "s|\"/manifest.json\"|\"${WEBUI_ROOT_PATH}/manifest.json\"|g" \
+          -e "s|'/manifest.json'|'${WEBUI_ROOT_PATH}/manifest.json'|g" \
+          "$f"; \
+      done && \
+      echo "Done rewriting root-absolute paths"; \
+    fi
+
+######## Final: released backend runtime + patched frontend + backend ########
+FROM ${BASE_IMAGE}
+
+# Replace the released frontend build with our sentinel-prefixed one.
+RUN rm -rf /app/build
+COPY --from=build /app/build /app/build
+
+# Overlay the patched backend sources (env.py, main.py, models.py, notes.py,
+# routers/terminals.py + the new path_prefix_middleware.py). Same version as the
+# base image, so only the root-path edits differ.
+COPY --from=build /app/backend/open_webui/ /app/backend/open_webui/
+
+# Runtime sentinel -> WEBUI_ROOT_PATH substitution, then exec the base CMD.
+COPY --chmod=755 entrypoint.sh /app/entrypoint.sh
+ENV WEBUI_ROOT_PATH=""
+# The base image runs uvicorn via `bash start.sh` in /app/backend; setting an
+# ENTRYPOINT clears the inherited CMD, so restate it explicitly.
+WORKDIR /app/backend
+ENTRYPOINT [ "/app/entrypoint.sh" ]
+CMD [ "bash", "start.sh" ]
